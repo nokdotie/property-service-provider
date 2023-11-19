@@ -16,7 +16,7 @@ lazy val root = project
 
 lazy val `property-service-provider` = project
   .settings(
-    githubOwner := "nokdotie",
+    githubOwner      := "nokdotie",
     githubRepository := "property-service-provider",
     resolvers += Resolver.githubPackages("nokdotie")
   )
