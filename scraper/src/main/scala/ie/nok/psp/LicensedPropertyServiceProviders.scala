@@ -36,7 +36,7 @@ object LicensedPropertyServiceProviders extends App {
 
     providersRaw.map(tryParse)
   }
-  
+
   private def tryParse(raw: LicensedPropertyServiceProviderRaw): LicensedPropertyServiceProvider = {
     val dateStr       = raw.licenseExpiry.trim.replace("**", "")
     val licenseExpiry = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
