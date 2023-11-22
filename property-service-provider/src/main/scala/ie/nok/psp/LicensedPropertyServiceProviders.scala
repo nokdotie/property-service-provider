@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-object LicensedPropertyServiceProviders extends App {
+object LicensedPropertyServiceProviders {
 
   def getAll: List[LicensedPropertyServiceProvider] = {
     val url = "https://www.psr.ie/psra-registers/register-of-licensed-property-services-providers/"

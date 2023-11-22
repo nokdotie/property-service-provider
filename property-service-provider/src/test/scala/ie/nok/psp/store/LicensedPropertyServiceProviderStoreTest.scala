@@ -1,22 +1,22 @@
-package ie.nok.psp.service
+package ie.nok.psp.store
+
 import ie.nok.psp.ClassOfProvider
-import ie.nok.psp.store.LicensedPropertyServiceProviderInMemoryStore
 import munit.FunSuite
 
-class LicensedPropertyServiceProviderServiceImplTest extends FunSuite {
+class LicensedPropertyServiceProviderStoreTest extends FunSuite {
 
-  private val service = LicensedPropertyServiceProviderServiceImpl(LicensedPropertyServiceProviderInMemoryStore)
+  private val store = LicensedPropertyServiceProviderStore.fromMemory
 
   test("get provider by licence number") {
     val licenceNumber = "001015-001006"
-    val actual        = service.getProviderByLicenseNumber(licenceNumber)
+    val actual        = store.getByLicenseNumber(licenceNumber)
     assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
     assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Director))
   }
 
   test("get agency by licence number") {
     val licenceNumber = "001128"
-    val actual        = service.getProviderByLicenseNumber(licenceNumber)
+    val actual        = store.getByLicenseNumber(licenceNumber)
     assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
     assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Company))
   }

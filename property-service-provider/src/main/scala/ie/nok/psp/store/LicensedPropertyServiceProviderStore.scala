@@ -1,9 +1,23 @@
 package ie.nok.psp.store
-import ie.nok.psp.LicensedPropertyServiceProvider
+import ie.nok.psp.{LicensedPropertyServiceProvider, LicensedPropertyServiceProviders}
 
-trait LicensedPropertyServiceProviderStore {
+sealed trait LicensedPropertyServiceProviderStore {
 
   def getAll: List[LicensedPropertyServiceProvider]
 
   def getByLicenseNumber(licenseNumber: String): Option[LicensedPropertyServiceProvider]
+}
+
+class LicensedPropertyServiceProviderImpl(cache: List[LicensedPropertyServiceProvider]) extends LicensedPropertyServiceProviderStore {
+
+  override def getAll: List[LicensedPropertyServiceProvider] = cache
+
+  override def getByLicenseNumber(licenseNumber: String): Option[LicensedPropertyServiceProvider] =
+    cache.find(_.licenseNumber == licenseNumber)
+
+}
+
+object LicensedPropertyServiceProviderStore {
+
+  val fromMemory: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderImpl(LicensedPropertyServiceProviders.getAll)
 }
