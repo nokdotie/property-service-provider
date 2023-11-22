@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-object LicensedPropertyServiceProviders extends App {
+object LicensedPropertyServiceProviders {
 
   def getAll: List[LicensedPropertyServiceProvider] = {
     val url = "https://www.psr.ie/psra-registers/register-of-licensed-property-services-providers/"
@@ -36,6 +36,19 @@ object LicensedPropertyServiceProviders extends App {
 
     providersRaw.map(tryParse)
   }
+
+  private case class LicensedPropertyServiceProviderRaw(
+      county: Option[String],
+      licenseNumber: String,
+      parentLicense: Option[String],
+      licenseeDetails: String, // name
+      address: String,
+      tradingName: Option[String],
+      classOfProvider: String,
+      licenseExpiry: String,
+      licenseType: String,
+      additionalInfo: Option[String]
+  )
 
   private def tryParse(raw: LicensedPropertyServiceProviderRaw): LicensedPropertyServiceProvider = {
     val dateStr       = raw.licenseExpiry.trim.replace("**", "")
