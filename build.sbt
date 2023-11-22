@@ -11,12 +11,25 @@ ThisBuild / version := DateTimeFormatter
 lazy val root = project
   .in(file("."))
   .aggregate(
-    `property-service-provider`
+    `property-service-provider`,
+    scraper
   )
 
 lazy val `property-service-provider` = project
   .settings(
     githubOwner      := "nokdotie",
     githubRepository := "property-service-provider",
-    resolvers += Resolver.githubPackages("nokdotie")
+    resolvers += Resolver.githubPackages("nokdotie"),
+    libraryDependencies ++= List(
+      "dev.zio"       %% "zio"              % "2.0.18",
+      "dev.zio"       %% "zio-streams"      % "2.0.18",
+      "dev.zio"       %% "zio-http"         % "0.0.5",
+      "org.jsoup"      % "jsoup"            % "1.16.2",
+      "ie.nok"        %% "scala-libraries"  % "20231012.185102.393149873",
+      "org.scalameta" %% "munit"            % "0.7.29" % Test,
+      "org.scalameta" %% "munit-scalacheck" % "0.7.29" % Test
+    )
   )
+
+lazy val scraper = project
+  .dependsOn(`property-service-provider` % "compile->compile;test->test")
