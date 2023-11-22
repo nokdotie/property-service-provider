@@ -37,6 +37,19 @@ object LicensedPropertyServiceProviders extends App {
     providersRaw.map(tryParse)
   }
 
+  private case class LicensedPropertyServiceProviderRaw(
+      county: Option[String],
+      licenseNumber: String,
+      parentLicense: Option[String],
+      licenseeDetails: String, // name
+      address: String,
+      tradingName: Option[String],
+      classOfProvider: String,
+      licenseExpiry: String,
+      licenseType: String,
+      additionalInfo: Option[String]
+  )
+
   private def tryParse(raw: LicensedPropertyServiceProviderRaw): LicensedPropertyServiceProvider = {
     val dateStr       = raw.licenseExpiry.trim.replace("**", "")
     val licenseExpiry = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
