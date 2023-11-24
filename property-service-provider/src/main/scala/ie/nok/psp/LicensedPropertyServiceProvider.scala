@@ -1,17 +1,19 @@
 package ie.nok.psp
 
+import zio.prelude.NonEmptyList
+
 import java.time.LocalDate
 
 case class LicensedPropertyServiceProvider(
     county: Option[String],
     licenseNumber: String,
     parentLicense: Option[String],
-    licenseeDetails: String, // name
+    licenseeDetails: String,
     address: String,
     tradingName: Option[String],
     classOfProvider: ClassOfProvider,
     licenseExpiry: LocalDate,
-    licenseTypes: List[LicenseType],
+    licenseTypes: NonEmptyList[LicenseType],
     licenseStatus: LicenceStatus,
     additionalInfo: Option[String]
 )

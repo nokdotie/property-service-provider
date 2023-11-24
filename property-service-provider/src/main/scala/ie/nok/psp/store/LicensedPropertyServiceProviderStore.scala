@@ -8,7 +8,7 @@ sealed trait LicensedPropertyServiceProviderStore {
   def getByLicenseNumber(licenseNumber: String): Option[LicensedPropertyServiceProvider]
 }
 
-class LicensedPropertyServiceProviderImpl(cache: List[LicensedPropertyServiceProvider]) extends LicensedPropertyServiceProviderStore {
+class LicensedPropertyServiceProviderStoreImpl(cache: List[LicensedPropertyServiceProvider]) extends LicensedPropertyServiceProviderStore {
 
   override def getAll: List[LicensedPropertyServiceProvider] = cache
 
@@ -19,5 +19,5 @@ class LicensedPropertyServiceProviderImpl(cache: List[LicensedPropertyServicePro
 
 object LicensedPropertyServiceProviderStore {
 
-  val fromMemory: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderImpl(LicensedPropertyServiceProviders.getAll)
+  val fromMemory: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderStoreImpl(LicensedPropertyServiceProviders.getAll)
 }

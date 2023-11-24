@@ -1,7 +1,9 @@
 package ie.nok.psp
 
+import ie.nok.psp.toStrOpt
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Document, Element}
+import zio.prelude.NonEmptyList
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -32,9 +34,9 @@ object LicensedPropertyServiceProviders {
 
     val providersRaw = rowElements
       .map(e => e.map(_.text()))
-      .flatMap(tryParse)
+      .flatMap(tryParse(_).toOption)
 
-    providersRaw.map(tryParse)
+    providersRaw.flatMap(tryParse(_).toOption)
   }
 
   private case class LicensedPropertyServiceProviderRaw(
@@ -50,64 +52,57 @@ object LicensedPropertyServiceProviders {
       additionalInfo: Option[String]
   )
 
-  private def tryParse(raw: LicensedPropertyServiceProviderRaw): LicensedPropertyServiceProvider = {
-    val dateStr       = raw.licenseExpiry.trim.replace("**", "")
-    val licenseExpiry = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-    val licenseStatus = raw.additionalInfo match {
-      case Some("Cannot Provide Services at this Time") => LicenceStatus.NotAuthorised
-      case other =>
-        if (raw.licenseExpiry.contains("**")) LicenceStatus.PendingRenewal
-        else LicenceStatus.Permitted
-
-    }
-    val licenseTypes = raw.licenseType
-      .split(" ")
-      .map(_.trim.replace("[", "").replace("]", ""))
-      .map(LicenseType.valueOf)
-      .toList
-
-    LicensedPropertyServiceProvider(
-      county = raw.county,
-      licenseNumber = raw.licenseNumber,
-      parentLicense = raw.parentLicense,
-      licenseeDetails = raw.licenseeDetails,
-      address = raw.address,
-      tradingName = raw.tradingName,
-      classOfProvider = ClassOfProvider.valueOf(raw.classOfProvider.filterNot(_.isWhitespace)),
-      licenseExpiry = licenseExpiry,
-      licenseTypes = licenseTypes,
-      licenseStatus = licenseStatus,
-      additionalInfo = raw.additionalInfo
-    )
-  }
-
-  extension (s: String) {
-    private def toStrOpt: Option[String] = s.trim match {
-      case ""    => None
-      case other => Some(other)
-    }
-  }
-
-  private def tryParse(str: List[String]): Option[LicensedPropertyServiceProviderRaw] = {
+  private def tryParse(raw: LicensedPropertyServiceProviderRaw): Try[LicensedPropertyServiceProvider] = {
     Try {
-      val licenseNumber = str(1)
-      val parentLicense = licenseNumber.split("-").headOption match {
-        case Some("999999")                          => None // assigned to the default parent
-        case Some(parent) if parent == licenseNumber => None
-        case other                                   => other
+      val dateStr       = raw.licenseExpiry.trim.replace("**", "")
+      val licenseExpiry = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+      val licenseStatus = raw.additionalInfo match {
+        case Some("Cannot Provide Services at this Time") => LicenceStatus.NotAuthorised
+        case other =>
+          if (raw.licenseExpiry.contains("**")) LicenceStatus.PendingRenewal
+          else LicenceStatus.Permitted
+
       }
-      LicensedPropertyServiceProviderRaw(
-        county = str.head.toStrOpt,
-        licenseNumber = licenseNumber,
-        parentLicense = parentLicense,
-        licenseeDetails = str(2),
-        address = str(3),
-        tradingName = str(4).toStrOpt,
-        classOfProvider = str(5),
-        licenseExpiry = str(6),
-        licenseType = str(7),
-        additionalInfo = str(8).toStrOpt
+      val licenseTypes = raw.licenseType
+        .split(" ")
+        .map(_.trim.replace("[", "").replace("]", ""))
+        .map(LicenseType.valueOf)
+        .toList
+
+      LicensedPropertyServiceProvider(
+        county = raw.county,
+        licenseNumber = raw.licenseNumber,
+        parentLicense = raw.parentLicense,
+        licenseeDetails = raw.licenseeDetails,
+        address = raw.address,
+        tradingName = raw.tradingName,
+        classOfProvider = ClassOfProvider.valueOf(raw.classOfProvider.filterNot(_.isWhitespace)),
+        licenseExpiry = licenseExpiry,
+        licenseTypes = NonEmptyList.fromIterable(licenseTypes.head, licenseTypes.tail),
+        licenseStatus = licenseStatus,
+        additionalInfo = raw.additionalInfo
       )
-    }.toOption
+    }
+  }
+
+  private def tryParse(str: List[String]): Try[LicensedPropertyServiceProviderRaw] = Try {
+    val licenseNumber = str(1)
+    val parentLicense = licenseNumber.split("-").headOption match {
+      case Some("999999")                          => None // assigned to the default parent
+      case Some(parent) if parent == licenseNumber => None
+      case other                                   => other
+    }
+    LicensedPropertyServiceProviderRaw(
+      county = str.head.toStrOpt,
+      licenseNumber = licenseNumber,
+      parentLicense = parentLicense,
+      licenseeDetails = str(2),
+      address = str(3),
+      tradingName = str(4).toStrOpt,
+      classOfProvider = str(5),
+      licenseExpiry = str(6),
+      licenseType = str(7),
+      additionalInfo = str(8).toStrOpt
+    )
   }
 }
