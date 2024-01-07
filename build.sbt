@@ -25,7 +25,7 @@ lazy val `property-service-provider` = project
       "dev.zio"       %% "zio-streams"      % "2.0.21",
       "dev.zio"       %% "zio-http"         % "0.0.5",
       "org.jsoup"      % "jsoup"            % "1.16.2",
-      "ie.nok"        %% "scala-libraries"  % "20231012.185102.393149873",
+      "ie.nok"        %% "scala-libraries"  % "20240104.114944.486313479",
       "org.scalameta" %% "munit"            % "0.7.29" % Test,
       "org.scalameta" %% "munit-scalacheck" % "0.7.29" % Test
     )
