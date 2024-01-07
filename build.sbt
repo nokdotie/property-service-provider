@@ -21,7 +21,7 @@ lazy val `property-service-provider` = project
     githubRepository := "property-service-provider",
     resolvers += Resolver.githubPackages("nokdotie"),
     libraryDependencies ++= List(
-      "dev.zio"       %% "zio"              % "2.0.18",
+      "dev.zio"       %% "zio"              % "2.0.21",
       "dev.zio"       %% "zio-streams"      % "2.0.18",
       "dev.zio"       %% "zio-http"         % "0.0.5",
       "org.jsoup"      % "jsoup"            % "1.16.2",
