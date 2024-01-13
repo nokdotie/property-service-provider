@@ -12,7 +12,7 @@ object CsvUtil {
   private val valuesSeparator = '|'
 
   def header(l: LicensedPropertyServiceProvider): String =
-    l.productElementNames.mkString(separator.toString)
+    l.productElementNames.mkString("", separator.toString, "\n")
   def toCsv(l: LicensedPropertyServiceProvider): String = {
     List(
       l.county.getOrElse(""),
@@ -26,7 +26,7 @@ object CsvUtil {
       l.licenseTypes.mkString(valuesSeparator.toString),
       l.licenseStatus,
       l.additionalInfo.getOrElse("")
-    ).mkString(separator.toString)
+    ).mkString("", separator.toString, "\n")
   }
 
   def fromCsv(s: String): Option[LicensedPropertyServiceProvider] = {

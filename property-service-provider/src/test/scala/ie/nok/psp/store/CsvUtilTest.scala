@@ -22,7 +22,7 @@ class CsvUtilTest extends FunSuite {
       licenseStatus = LicenceStatus.Permitted,
       additionalInfo = None
     )
-    val csv = CsvUtil.toCsv(input)
+    val csv    = CsvUtil.toCsv(input)
     val actual = CsvUtil.fromCsv(csv)
     assertEquals(actual, Some(input))
   }

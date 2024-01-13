@@ -1,16 +1,17 @@
 package ie.nok.psp.store
 
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.storage.{Blob, BlobInfo, Storage, StorageOptions}
-import ie.nok.psp.LicensedPropertyServiceProvider
+import com.google.cloud.storage.Storage.BlobWriteOption
+import com.google.cloud.storage.{BlobInfo, Storage, StorageOptions}
 
 import java.io.FileWriter
 import java.nio.file.{Files, Path}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset}
-import scala.util.Try
 import scala.util.chaining.scalaUtilChainingOps
-object LicensedPropertyServiceProviderGoogleStore {
+import scala.util.{Failure, Success, Try}
+
+class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceProviderStore) {
 
   private val blobNameLatest: String = "providers/latest.csv"
 
@@ -26,17 +27,18 @@ object LicensedPropertyServiceProviderGoogleStore {
       .format(Instant.now)
       .pipe { timestamp => s"providers/$timestamp.csv" }
 
-  private val googleCloudStorage: Storage =
+  private lazy val googleCloudStorage: Storage =
     StorageOptions.getDefaultInstance
       .toBuilder()
       .setCredentials(GoogleCredentials.getApplicationDefault())
       .build()
       .getService
 
-  def saveAll(data: List[LicensedPropertyServiceProvider]): Boolean = {
-    val tmpFile: Path = Files.createTempFile("tmp", ".csv")
+  def saveAll: Boolean = {
+    val data              = store.getAll
+    val tmpFilePath: Path = Files.createTempFile("tmp", ".csv")
     Try {
-      val fileWriter = new FileWriter(tmpFile.toFile)
+      val fileWriter = new FileWriter(tmpFilePath.toFile)
       data.zipWithIndex.foreach((d, i) =>
         if (i == 0) {
           fileWriter.write(CsvUtil.header(d))
@@ -44,11 +46,22 @@ object LicensedPropertyServiceProviderGoogleStore {
         fileWriter.write(CsvUtil.toCsv(d))
       )
       fileWriter.close()
-    }
-    val blobInfo: BlobInfo = BlobInfo.newBuilder(bucket, blobNameVersioned).build()
-    val blob: Blob         = googleCloudStorage.createFrom(blobInfo, tmpFile, List.empty: _*)
-    // TODO how can I know that the file was saved from the response ?
-    true
+      val writeOptions: List[BlobWriteOption] = List.empty
+      val blobInfoVersioned: BlobInfo         = BlobInfo.newBuilder(bucket, blobNameVersioned).build()
+      val blobInfoLatest: BlobInfo            = BlobInfo.newBuilder(bucket, blobNameLatest).build()
+      googleCloudStorage.createFrom(blobInfoVersioned, tmpFilePath, writeOptions: _*)
+      googleCloudStorage.createFrom(blobInfoLatest, tmpFilePath, writeOptions: _*)
+    } match
+      case Success(_) => true
+      case Failure(exception) =>
+        println(exception.getMessage)
+        false
   }
+  
+  
+}
 
+object LicensedPropertyServiceProviderGoogleStore {
+
+  val instance: LicensedPropertyServiceProviderGoogleStore = LicensedPropertyServiceProviderGoogleStore(LicensedPropertyServiceProviderStore.fromMemory)
 }
