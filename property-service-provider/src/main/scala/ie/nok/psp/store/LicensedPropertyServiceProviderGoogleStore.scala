@@ -1,8 +1,10 @@
 package ie.nok.psp.store
 
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.storage.Storage.BlobWriteOption
+import com.google.cloud.storage.Storage.{BlobSourceOption, BlobWriteOption}
 import com.google.cloud.storage.{BlobInfo, Storage, StorageOptions}
+import ie.nok.psp.LicensedPropertyServiceProvider
+import zio.{ZIO, ZLayer}
 
 import java.io.FileWriter
 import java.nio.file.{Files, Path}
@@ -35,8 +37,8 @@ class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceP
       .getService
 
   def saveAll: Boolean = {
-    val data              = store.getAll
-    val tmpFilePath: Path = Files.createTempFile("tmp", ".csv")
+    val data: List[LicensedPropertyServiceProvider] = store.getAll
+    val tmpFilePath: Path                           = Files.createTempFile("tmp", ".csv")
     Try {
       val fileWriter = new FileWriter(tmpFilePath.toFile)
       data.zipWithIndex.foreach((d, i) =>
@@ -57,11 +59,28 @@ class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceP
         println(exception.getMessage)
         false
   }
-  
-  
+
+  def getAll: List[LicensedPropertyServiceProvider] =
+    val sourceOptions: List[BlobSourceOption] = List.empty
+    val byteArray: Array[Byte]                = googleCloudStorage.readAllBytes(bucket, blobNameLatest, sourceOptions: _*)
+    byteArray
+      .pipe { new String(_) }
+      .linesIterator
+      .flatMap { CsvUtil.fromCsv }
+      .toList
 }
 
 object LicensedPropertyServiceProviderGoogleStore {
 
-  val instance: LicensedPropertyServiceProviderGoogleStore = LicensedPropertyServiceProviderGoogleStore(LicensedPropertyServiceProviderStore.fromMemory)
+  lazy val instance: LicensedPropertyServiceProviderGoogleStore = LicensedPropertyServiceProviderGoogleStore(LicensedPropertyServiceProviderStore.fromScraper)
+
+  lazy val layer: ZLayer[LicensedPropertyServiceProviderStore, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+    ZLayer.scoped {
+      ZIO
+        .service[LicensedPropertyServiceProviderStore]
+        .map(LicensedPropertyServiceProviderGoogleStore(_))
+    }
+
+  lazy val live: ZLayer[Any, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+    LicensedPropertyServiceProviderStore.layer >>> layer
 }

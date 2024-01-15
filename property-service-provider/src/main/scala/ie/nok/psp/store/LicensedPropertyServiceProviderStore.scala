@@ -1,7 +1,8 @@
 package ie.nok.psp.store
-import ie.nok.psp.{LicensedPropertyServiceProvider, LicensedPropertyServiceProviders}
+import ie.nok.psp.{LicensedPropertyServiceProvider, LicensedPropertyServiceProviderScraper}
+import zio.ZLayer
 
-sealed trait LicensedPropertyServiceProviderStore {
+trait LicensedPropertyServiceProviderStore {
 
   def getAll: List[LicensedPropertyServiceProvider]
 
@@ -19,5 +20,11 @@ class LicensedPropertyServiceProviderStoreImpl(cache: List[LicensedPropertyServi
 
 object LicensedPropertyServiceProviderStore {
 
-  val fromMemory: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderStoreImpl(LicensedPropertyServiceProviders.getAll)
+  lazy val layer: ZLayer[Any, Throwable, LicensedPropertyServiceProviderStore] =
+    ZLayer.succeed(LicensedPropertyServiceProviderStore.fromScraper)
+
+  lazy val fromScraper: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderStoreImpl(LicensedPropertyServiceProviderScraper.getAll)
+  lazy val fromGoogleStore: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderStoreImpl(
+    LicensedPropertyServiceProviderGoogleStore(fromScraper).getAll
+  )
 }

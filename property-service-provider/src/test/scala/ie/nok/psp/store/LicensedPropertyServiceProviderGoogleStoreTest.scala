@@ -15,4 +15,13 @@ class LicensedPropertyServiceProviderGoogleStoreTest extends FunSuite {
       _ => assert(true)
     )
   }
+
+  test("getAll providers from google store".ignore) {
+    Try {
+      store.getAll
+    } fold (
+      _ => fail("Error in getAll"),
+      list => assert(list.nonEmpty)
+    )
+  }
 }

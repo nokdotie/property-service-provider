@@ -1,6 +1,7 @@
 package ie.nok.psp.store
 
 import ie.nok.psp.*
+import ie.nok.psp.LicenseType.A
 import zio.prelude.NonEmptyList
 
 import java.time.LocalDate
@@ -30,9 +31,9 @@ object CsvUtil {
   }
 
   def fromCsv(s: String): Option[LicensedPropertyServiceProvider] = {
-    val attributes: List[String] = s.split(separator.toString, -2).toList
-    val licenseTypes             = attributes(8).split(valuesSeparator).toList.map(LicenseType.valueOf)
-    Try {
+    val triedLicensedPropertyServiceProvider = Try {
+      val attributes: List[String]        = s.split(separator.toString, -2).toList
+      val licenseTypes: List[LicenseType] = attributes(8).split(valuesSeparator).toList.map(LicenseType.valueOf)
       LicensedPropertyServiceProvider(
         county = attributes.head.toStrOpt,
         licenseNumber = attributes(1),
@@ -42,10 +43,11 @@ object CsvUtil {
         tradingName = attributes(5).toStrOpt,
         classOfProvider = ClassOfProvider.valueOf(attributes(6)),
         licenseExpiry = LocalDate.parse(attributes(7)),
-        licenseTypes = NonEmptyList.fromIterable(licenseTypes.head, licenseTypes.tail),
+        licenseTypes = licenseTypes,
         licenseStatus = LicenceStatus.valueOf(attributes(9)),
         additionalInfo = attributes(10).toStrOpt
       )
-    }.toOption
+    }
+    triedLicensedPropertyServiceProvider.toOption
   }
 }

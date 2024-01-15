@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-object LicensedPropertyServiceProviders {
+object LicensedPropertyServiceProviderScraper {
 
   def getAll: List[LicensedPropertyServiceProvider] = {
     val url = "https://www.psr.ie/psra-registers/register-of-licensed-property-services-providers/"
@@ -32,7 +32,7 @@ object LicensedPropertyServiceProviders {
       tr.select("td").iterator().asScala.toList
     }
 
-    val providersRaw = rowElements
+    val providersRaw: List[LicensedPropertyServiceProviderRaw] = rowElements
       .map(e => e.map(_.text()))
       .flatMap(tryParse(_).toOption)
 

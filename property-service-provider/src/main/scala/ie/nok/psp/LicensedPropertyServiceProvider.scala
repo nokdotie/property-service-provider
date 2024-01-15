@@ -13,7 +13,7 @@ case class LicensedPropertyServiceProvider(
     tradingName: Option[String],
     classOfProvider: ClassOfProvider,
     licenseExpiry: LocalDate,
-    licenseTypes: NonEmptyList[LicenseType],
+    licenseTypes: List[LicenseType],
     licenseStatus: LicenceStatus,
     additionalInfo: Option[String]
 )

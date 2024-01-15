@@ -1,16 +1,17 @@
 package ie.nok.psp
-import ie.nok.env.Environment
+
+import ie.nok.psp.store.LicensedPropertyServiceProviderGoogleStore
 import zio.{Scope, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 object Main extends ZIOAppDefault {
 
   // scraper main app
-  private val bucket: ZIO[Any, Throwable, String] =
-    Environment.get
-      .map {
-        case Environment.Production => "nok-ie"
-        case Environment.Other      => "nok-ie-dev"
+  private val app: ZIO[LicensedPropertyServiceProviderGoogleStore, Throwable, Boolean] =
+    ZIO
+      .serviceWithZIO[LicensedPropertyServiceProviderGoogleStore] { licensedPropertyServiceProviderGoogleStore =>
+        ZIO.attempt(licensedPropertyServiceProviderGoogleStore.saveAll)
       }
 
-  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = ???
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = app
+    .provide(LicensedPropertyServiceProviderGoogleStore.live)
 }
