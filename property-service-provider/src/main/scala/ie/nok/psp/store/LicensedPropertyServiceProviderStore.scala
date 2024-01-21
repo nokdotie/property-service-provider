@@ -1,14 +1,15 @@
 package ie.nok.psp.store
-import ie.nok.psp.{LicensedPropertyServiceProvider, LicensedPropertyServiceProviders}
+import ie.nok.psp.{LicensedPropertyServiceProvider, LicensedPropertyServiceProviderScraper}
+import zio.{ZIO, ZLayer}
 
-sealed trait LicensedPropertyServiceProviderStore {
+trait LicensedPropertyServiceProviderStore {
 
   def getAll: List[LicensedPropertyServiceProvider]
 
   def getByLicenseNumber(licenseNumber: String): Option[LicensedPropertyServiceProvider]
 }
 
-class LicensedPropertyServiceProviderImpl(cache: List[LicensedPropertyServiceProvider]) extends LicensedPropertyServiceProviderStore {
+class LicensedPropertyServiceProviderStoreImpl(cache: List[LicensedPropertyServiceProvider]) extends LicensedPropertyServiceProviderStore {
 
   override def getAll: List[LicensedPropertyServiceProvider] = cache
 
@@ -19,5 +20,15 @@ class LicensedPropertyServiceProviderImpl(cache: List[LicensedPropertyServicePro
 
 object LicensedPropertyServiceProviderStore {
 
-  val fromMemory: LicensedPropertyServiceProviderStore = LicensedPropertyServiceProviderImpl(LicensedPropertyServiceProviders.getAll)
+  lazy val zLicensedPropertyServiceProviderStore: ZIO[LicensedPropertyServiceProviderScraper, Throwable, LicensedPropertyServiceProviderStore] =
+    ZIO
+      .service[LicensedPropertyServiceProviderScraper]
+      .flatMap { scraper =>
+        ZIO
+          .fromTry(scraper.getAll)
+          .map(LicensedPropertyServiceProviderStoreImpl(_))
+      }
+
+  lazy val layer: ZLayer[LicensedPropertyServiceProviderScraper, Throwable, LicensedPropertyServiceProviderStore] =
+    ZLayer.scoped(zLicensedPropertyServiceProviderStore)
 }

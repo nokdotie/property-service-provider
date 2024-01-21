@@ -6,7 +6,7 @@ case class LicensedPropertyServiceProvider(
     county: Option[String],
     licenseNumber: String,
     parentLicense: Option[String],
-    licenseeDetails: String, // name
+    licenseeDetails: String,
     address: String,
     tradingName: Option[String],
     classOfProvider: ClassOfProvider,

@@ -1,23 +1,43 @@
 package ie.nok.psp.store
 
-import ie.nok.psp.ClassOfProvider
-import munit.FunSuite
+import ie.nok.psp.{ClassOfProvider, TestHelper}
+import org.scalatest.funsuite.AnyFunSuite
 
-class LicensedPropertyServiceProviderStoreTest extends FunSuite {
+class LicensedPropertyServiceProviderStoreTest extends AnyFunSuite with TestHelper {
 
-  private val store = LicensedPropertyServiceProviderStore.fromMemory
+  private lazy val triedStoreFromHtmlScraper = htmlScraper.getAll.map(LicensedPropertyServiceProviderStoreImpl(_))
 
-  test("get provider by licence number") {
+  test("storeFromHtmlScraper - get all providers") {
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store => assert(store.getAll.length === 5927)
+    )
+  }
+
+  test("storeFromHtmlScraper - get provider by licence number") {
     val licenceNumber = "001015-001006"
-    val actual        = store.getByLicenseNumber(licenceNumber)
-    assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
-    assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Director))
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store =>
+        val actual = store.getByLicenseNumber(licenceNumber)
+        assert(actual.map(_.licenseNumber) === Some(licenceNumber))
+        assert(actual.map(_.classOfProvider) === Some(ClassOfProvider.Director))
+    )
   }
 
-  test("get agency by licence number") {
+  test("storeFromHtmlScraper - get agency by licence number") {
     val licenceNumber = "001128"
-    val actual        = store.getByLicenseNumber(licenceNumber)
-    assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
-    assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Company))
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store =>
+        val actual = store.getByLicenseNumber(licenceNumber)
+        assert(actual.map(_.licenseNumber) === Some(licenceNumber))
+        assert(actual.map(_.classOfProvider) === Some(ClassOfProvider.Company))
+    )
   }
+
+//  test("storeFromGoogleStore - get all providers".ignore) {
+//    val actual = storeFromGoogleStore.getAll
+//    assert(actual.length > 5000)
+//  }
 }
