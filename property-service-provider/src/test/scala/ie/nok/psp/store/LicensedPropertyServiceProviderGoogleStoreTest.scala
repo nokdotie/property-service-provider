@@ -1,27 +1,34 @@
 package ie.nok.psp.store
-import munit.FunSuite
 
-import scala.util.Try
+import com.google.cloud.storage.*
+import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
+import ie.nok.psp.TestHelper
+import org.scalatest.funsuite.AnyFunSuite
 
-class LicensedPropertyServiceProviderGoogleStoreTest extends FunSuite {
+class LicensedPropertyServiceProviderGoogleStoreTest extends AnyFunSuite with TestHelper {
 
-  private lazy val store = LicensedPropertyServiceProviderGoogleStore.instance
+  private lazy val googleCloudStorageLocal: Storage = LocalStorageHelper.getOptions.getService
+  private lazy val triedStoreFromHtmlScraper        = htmlScraper.getAll.map(LicensedPropertyServiceProviderStoreImpl(_))
 
-  test("saveAll providers to google store".ignore) {
-    Try {
-      store.saveAll
-    } fold (
-      _ => fail("Error in saveAll"),
-      _ => assert(true)
-    )
+  private lazy val triedPropertyServiceProviderGoogleStore =
+    triedStoreFromHtmlScraper.map(LicensedPropertyServiceProviderGoogleStore(googleCloudStorageLocal, _))
+
+  test("saveAll providers to google store") {
+    triedPropertyServiceProviderGoogleStore
+      .map(_.saveAll)
+      .fold(
+        t => fail(t.getLocalizedMessage),
+        _ => assert(true)
+      )
   }
 
-  test("getAll providers from google store".ignore) {
-    Try {
-      store.getAll
-    } fold (
-      _ => fail("Error in getAll"),
-      list => assert(list.nonEmpty)
-    )
+  test("getAll providers from google store") {
+    triedPropertyServiceProviderGoogleStore.map(_.saveAll)
+    triedPropertyServiceProviderGoogleStore
+      .map(_.getAll)
+      .fold(
+        t => fail(t.getLocalizedMessage),
+        providers => assert(providers.length === 5927)
+      )
   }
 }

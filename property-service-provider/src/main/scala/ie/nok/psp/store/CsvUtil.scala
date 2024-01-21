@@ -1,11 +1,11 @@
 package ie.nok.psp.store
 
 import ie.nok.psp.*
-import ie.nok.psp.LicenseType.A
-import zio.prelude.NonEmptyList
+import ie.nok.psp.utils.StringUtils.toStrOpt
 
 import java.time.LocalDate
 import scala.util.Try
+import scala.util.chaining.*
 
 object CsvUtil {
 
@@ -30,24 +30,21 @@ object CsvUtil {
     ).mkString("", separator.toString, "\n")
   }
 
-  def fromCsv(s: String): Option[LicensedPropertyServiceProvider] = {
-    val triedLicensedPropertyServiceProvider = Try {
-      val attributes: List[String]        = s.split(separator.toString, -2).toList
-      val licenseTypes: List[LicenseType] = attributes(8).split(valuesSeparator).toList.map(LicenseType.valueOf)
-      LicensedPropertyServiceProvider(
-        county = attributes.head.toStrOpt,
-        licenseNumber = attributes(1),
-        parentLicense = attributes(2).toStrOpt,
-        licenseeDetails = attributes(3),
-        address = attributes(4),
-        tradingName = attributes(5).toStrOpt,
-        classOfProvider = ClassOfProvider.valueOf(attributes(6)),
-        licenseExpiry = LocalDate.parse(attributes(7)),
-        licenseTypes = licenseTypes,
-        licenseStatus = LicenceStatus.valueOf(attributes(9)),
-        additionalInfo = attributes(10).toStrOpt
-      )
-    }
-    triedLicensedPropertyServiceProvider.toOption
+  def fromCsv(s: String): Try[LicensedPropertyServiceProvider] = Try {
+    val attributes: List[String]        = s.split(separator.toString, -2).toList
+    val licenseTypes: List[LicenseType] = attributes(8).split(valuesSeparator).toList.map(LicenseType.valueOf)
+    LicensedPropertyServiceProvider(
+      county = attributes.head.pipe(toStrOpt),
+      licenseNumber = attributes(1),
+      parentLicense = attributes(2).pipe(toStrOpt),
+      licenseeDetails = attributes(3),
+      address = attributes(4),
+      tradingName = attributes(5).pipe(toStrOpt),
+      classOfProvider = ClassOfProvider.valueOf(attributes(6)),
+      licenseExpiry = LocalDate.parse(attributes(7)),
+      licenseTypes = licenseTypes,
+      licenseStatus = LicenceStatus.valueOf(attributes(9)),
+      additionalInfo = attributes(10).pipe(toStrOpt)
+    )
   }
 }

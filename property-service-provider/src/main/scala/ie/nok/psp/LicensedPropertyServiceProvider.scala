@@ -1,7 +1,5 @@
 package ie.nok.psp
 
-import zio.prelude.NonEmptyList
-
 import java.time.LocalDate
 
 case class LicensedPropertyServiceProvider(

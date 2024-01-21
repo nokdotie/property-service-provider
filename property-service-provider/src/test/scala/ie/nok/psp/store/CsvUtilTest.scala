@@ -1,12 +1,13 @@
 package ie.nok.psp.store
 
 import ie.nok.psp.{ClassOfProvider, LicenceStatus, LicenseType, LicensedPropertyServiceProvider}
-import munit.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import zio.prelude.NonEmptyList
 
 import java.time.LocalDate
 
-class CsvUtilTest extends FunSuite {
+class CsvUtilTest extends AnyFunSuite with Matchers {
 
   test("csv serialization for LicensedPropertyServiceProvider") {
     val input = LicensedPropertyServiceProvider(
@@ -23,7 +24,7 @@ class CsvUtilTest extends FunSuite {
       additionalInfo = None
     )
     val csv    = CsvUtil.toCsv(input)
-    val actual = CsvUtil.fromCsv(csv)
-    assertEquals(actual, Some(input))
+    val actual = CsvUtil.fromCsv(csv).toOption
+    actual shouldBe Some(input)
   }
 }

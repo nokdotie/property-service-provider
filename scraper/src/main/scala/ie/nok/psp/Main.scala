@@ -1,7 +1,7 @@
 package ie.nok.psp
 
-import ie.nok.psp.store.LicensedPropertyServiceProviderGoogleStore
-import zio.{Scope, ZIO, ZIOAppArgs, ZIOAppDefault}
+import ie.nok.psp.store.{LicensedPropertyServiceProviderGoogleStore, LicensedPropertyServiceProviderStore}
+import zio.{Scope, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 object Main extends ZIOAppDefault {
 
@@ -13,5 +13,11 @@ object Main extends ZIOAppDefault {
       }
 
   override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = app
-    .provide(LicensedPropertyServiceProviderGoogleStore.live)
+    .provide(
+      LicensedPropertyServiceProviderGoogleStore.layer,
+      LicensedPropertyServiceProviderGoogleStore.googleStorageLayer,
+      LicensedPropertyServiceProviderStore.layer,
+      LicensedPropertyServiceProviderScraper.layer,
+      LicensedPropertyServiceProviderParser.layer
+    )
 }

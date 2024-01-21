@@ -1,34 +1,43 @@
 package ie.nok.psp.store
 
-import ie.nok.psp.ClassOfProvider
-import munit.FunSuite
+import ie.nok.psp.{ClassOfProvider, TestHelper}
+import org.scalatest.funsuite.AnyFunSuite
 
-class LicensedPropertyServiceProviderStoreTest extends FunSuite {
+class LicensedPropertyServiceProviderStoreTest extends AnyFunSuite with TestHelper {
 
-  private val storeFromScraper     = LicensedPropertyServiceProviderStore.fromScraper
-  private val storeFromGoogleStore = LicensedPropertyServiceProviderStore.fromGoogleStore
+  private lazy val triedStoreFromHtmlScraper = htmlScraper.getAll.map(LicensedPropertyServiceProviderStoreImpl(_))
 
-  test("storeFromScraper - get all providers".ignore) {
-    val actual = storeFromScraper.getAll
-    assert(actual.length > 5000)
+  test("storeFromHtmlScraper - get all providers") {
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store => assert(store.getAll.length === 5927)
+    )
   }
 
-  test("storeFromScraper - get provider by licence number".ignore) {
+  test("storeFromHtmlScraper - get provider by licence number") {
     val licenceNumber = "001015-001006"
-    val actual        = storeFromScraper.getByLicenseNumber(licenceNumber)
-    assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
-    assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Director))
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store =>
+        val actual = store.getByLicenseNumber(licenceNumber)
+        assert(actual.map(_.licenseNumber) === Some(licenceNumber))
+        assert(actual.map(_.classOfProvider) === Some(ClassOfProvider.Director))
+    )
   }
 
-  test("storeFromScraper - get agency by licence number".ignore) {
+  test("storeFromHtmlScraper - get agency by licence number") {
     val licenceNumber = "001128"
-    val actual        = storeFromScraper.getByLicenseNumber(licenceNumber)
-    assertEquals(actual.map(_.licenseNumber), Some(licenceNumber))
-    assertEquals(actual.map(_.classOfProvider), Some(ClassOfProvider.Company))
+    triedStoreFromHtmlScraper.fold(
+      t => fail(t.getLocalizedMessage),
+      store =>
+        val actual = store.getByLicenseNumber(licenceNumber)
+        assert(actual.map(_.licenseNumber) === Some(licenceNumber))
+        assert(actual.map(_.classOfProvider) === Some(ClassOfProvider.Company))
+    )
   }
 
-  test("storeFromGoogleStore - get all providers".ignore) {
-    val actual = storeFromGoogleStore.getAll
-    assert(actual.length > 5000)
-  }
+//  test("storeFromGoogleStore - get all providers".ignore) {
+//    val actual = storeFromGoogleStore.getAll
+//    assert(actual.length > 5000)
+//  }
 }

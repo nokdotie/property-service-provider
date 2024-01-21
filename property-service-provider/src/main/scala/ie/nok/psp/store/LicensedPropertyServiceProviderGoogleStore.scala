@@ -1,8 +1,8 @@
 package ie.nok.psp.store
 
-import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.Storage.{BlobSourceOption, BlobWriteOption}
-import com.google.cloud.storage.{BlobInfo, Storage, StorageOptions}
+import com.google.cloud.storage.{BlobInfo, Storage}
+import ie.nok.gcp.safe.{GcpCredentials, GcpStorage}
 import ie.nok.psp.LicensedPropertyServiceProvider
 import zio.{ZIO, ZLayer}
 
@@ -13,7 +13,7 @@ import java.time.{Instant, ZoneOffset}
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.{Failure, Success, Try}
 
-class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceProviderStore) {
+class LicensedPropertyServiceProviderGoogleStore(googleCloudStorage: Storage, store: LicensedPropertyServiceProviderStore) {
 
   private val blobNameLatest: String = "providers/latest.csv"
 
@@ -28,13 +28,6 @@ class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceP
       .withZone(ZoneOffset.UTC)
       .format(Instant.now)
       .pipe { timestamp => s"providers/$timestamp.csv" }
-
-  private lazy val googleCloudStorage: Storage =
-    StorageOptions.getDefaultInstance
-      .toBuilder()
-      .setCredentials(GoogleCredentials.getApplicationDefault())
-      .build()
-      .getService
 
   def saveAll: Boolean = {
     val data: List[LicensedPropertyServiceProvider] = store.getAll
@@ -66,21 +59,44 @@ class LicensedPropertyServiceProviderGoogleStore(store: LicensedPropertyServiceP
     byteArray
       .pipe { new String(_) }
       .linesIterator
-      .flatMap { CsvUtil.fromCsv }
+      .map { CsvUtil.fromCsv }
+      .flatMap { _.toOption }
       .toList
 }
 
 object LicensedPropertyServiceProviderGoogleStore {
 
-  lazy val instance: LicensedPropertyServiceProviderGoogleStore = LicensedPropertyServiceProviderGoogleStore(LicensedPropertyServiceProviderStore.fromScraper)
+//  private lazy val googleCredentials: Task[GoogleCredentials] =
 
-  lazy val layer: ZLayer[LicensedPropertyServiceProviderStore, Throwable, LicensedPropertyServiceProviderGoogleStore] =
-    ZLayer.scoped {
-      ZIO
-        .service[LicensedPropertyServiceProviderStore]
-        .map(LicensedPropertyServiceProviderGoogleStore(_))
+  lazy val zGoogleStorage: ZIO[Any, Throwable, Storage] = ZIO
+    .fromTry(GcpCredentials.googleCredentials)
+    .flatMap(credentials => ZIO.fromTry(GcpStorage.googleCloudStorage(credentials)))
+
+  lazy val googleStorageLayer: ZLayer[Any, Throwable, Storage] = ZLayer.scoped(zGoogleStorage)
+
+  lazy val zLicensedPropertyServiceProviderGoogleStore
+      : ZIO[Storage with LicensedPropertyServiceProviderStore, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+    for {
+      googleCloudStorage <- ZIO.service[Storage]
+      store              <- ZIO.service[LicensedPropertyServiceProviderStore]
+    } yield {
+      LicensedPropertyServiceProviderGoogleStore(googleCloudStorage, store)
     }
 
-  lazy val live: ZLayer[Any, Throwable, LicensedPropertyServiceProviderGoogleStore] =
-    LicensedPropertyServiceProviderStore.layer >>> layer
+  lazy val layer: ZLayer[Storage with LicensedPropertyServiceProviderStore, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+    ZLayer.scoped(zLicensedPropertyServiceProviderGoogleStore)
+
+//  lazy val v: ZLayer[Any, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+
+//  lazy val instance: LicensedPropertyServiceProviderGoogleStore = licensedPropertyServiceProviderStore.map(LicensedPropertyServiceProviderGoogleStore(_))
+//
+//  lazy val layer: ZLayer[LicensedPropertyServiceProviderStore, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+//    ZLayer.scoped {
+//      ZIO
+//        .service[LicensedPropertyServiceProviderStore]
+//        .map(LicensedPropertyServiceProviderGoogleStore(_))
+//    }
+//
+//  lazy val live: ZLayer[Any, Throwable, LicensedPropertyServiceProviderGoogleStore] =
+//    LicensedPropertyServiceProviderStore.layer >>> layer
 }
