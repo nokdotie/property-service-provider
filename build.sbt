@@ -22,7 +22,7 @@ lazy val `property-service-provider` = project
     resolvers += Resolver.githubPackages("nokdotie"),
     libraryDependencies ++= List(
       "dev.zio"           %% "zio"              % "2.0.22",
-      "dev.zio"           %% "zio-streams"      % "2.0.21",
+      "dev.zio"           %% "zio-streams"      % "2.0.22",
       "dev.zio"           %% "zio-http"         % "0.0.5",
       "org.jsoup"          % "jsoup"            % "1.17.2",
       "ie.nok"            %% "scala-libraries"  % "20240117.132117.355857488",
