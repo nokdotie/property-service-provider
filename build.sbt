@@ -27,7 +27,7 @@ lazy val `property-service-provider` = project
       "org.jsoup"          % "jsoup"            % "1.18.1",
       "ie.nok"            %% "scala-libraries"  % "20240627.143942.92337699",
       "org.scalatest"     %% "scalatest"        % "3.2.19"   % Test,
-      "org.scalatestplus" %% "scalacheck-1-17"  % "3.2.17.0" % Test,
+      "org.scalatestplus" %% "scalacheck-1-17"  % "3.2.18.0" % Test,
       "org.scalatestplus" %% "mockito-5-8"      % "3.2.17.0" % Test,
       "com.google.cloud"   % "google-cloud-nio" % "0.127.22" % Test
     )
