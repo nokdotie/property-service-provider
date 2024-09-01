@@ -29,7 +29,7 @@ lazy val `property-service-provider` = project
       "org.scalatest"     %% "scalatest"        % "3.2.17"   % Test,
       "org.scalatestplus" %% "scalacheck-1-17"  % "3.2.17.0" % Test,
       "org.scalatestplus" %% "mockito-5-8"      % "3.2.17.0" % Test,
-      "com.google.cloud"   % "google-cloud-nio" % "0.127.9"  % Test
+      "com.google.cloud"   % "google-cloud-nio" % "0.127.22" % Test
     )
   )
 
